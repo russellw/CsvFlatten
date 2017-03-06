@@ -11,6 +11,8 @@ namespace CsvFlatten
 {
     class Program
     {
+        static bool skipHeader;
+
         static IEnumerable<string[]> ReadCsv(string file)
         {
             // For some obscure historical reason, the CSV parser is in the Visual Basic library
@@ -19,6 +21,8 @@ namespace CsvFlatten
             {
                 parser.TextFieldType = FieldType.Delimited;
                 parser.SetDelimiters(",");
+                if (skipHeader)
+                    parser.ReadFields();
                 while (!parser.EndOfData)
                     yield return parser.ReadFields();
             }
@@ -56,8 +60,10 @@ namespace CsvFlatten
                     case "help":
                         Console.WriteLine("Options:");
                         Console.WriteLine();
-                        Console.WriteLine("-help     Show help");
-                        Console.WriteLine("-version  Show version");
+                        Console.WriteLine("-h  Show help");
+                        Console.WriteLine("-v  Show version");
+                        Console.WriteLine();
+                        Console.WriteLine("-s  Skip header line");
                         return;
                     case "V":
                     case "v":
@@ -65,6 +71,11 @@ namespace CsvFlatten
                         var assemblyName = Assembly.GetExecutingAssembly().GetName();
                         Console.WriteLine("{0} {1}", assemblyName.Name, assemblyName.Version.ToString(2));
                         return;
+                    case "s":
+                    case "skip":
+                    case "skip-header":
+                        skipHeader = true;
+                        break;
                     default:
                         Console.WriteLine(args[i] + ": unknown option");
                         Environment.Exit(1);
