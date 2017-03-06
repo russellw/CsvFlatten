@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic.FileIO;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,6 +11,19 @@ namespace CsvFlatten
 {
     class Program
     {
+        static IEnumerable<string[]> ReadCsv(string file)
+        {
+            // For some obscure historical reason, the CSV parser is in the Visual Basic library
+            // So to make this work in a new project, right click project, Add Reference, Microsoft.VisualBasic
+            using (TextFieldParser parser = new TextFieldParser(file))
+            {
+                parser.TextFieldType = FieldType.Delimited;
+                parser.SetDelimiters(",");
+                while (!parser.EndOfData)
+                    yield return parser.ReadFields();
+            }
+        }
+
         static void Main(string[] args)
         {
             string file = null;
@@ -57,8 +71,21 @@ namespace CsvFlatten
                         break;
                 }
             }
+            if (file == null)
+            {
+                var assemblyName = Assembly.GetExecutingAssembly().GetName();
+                Console.WriteLine(string.Format("Usage: {0} <file>", assemblyName.Name));
+                Environment.Exit(1);
+            }
             try
             {
+                foreach (var line in ReadCsv(file))
+                {
+                    foreach (var cell in line)
+                    {
+                        Console.WriteLine(cell);
+                    }
+                }
             }
             catch (IOException e)
             {
